@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo "$SAML_IDP_REMOTE_CONTENTS" > /opt/filesender/simplesaml/metadata/saml20-idp-remote.php
+
+echo PassEnv $APACHE_PASS_ENV > /etc/apache2/conf-enabled/pass-env.conf
+
+docker-php-entrypoint apache2-foreground
