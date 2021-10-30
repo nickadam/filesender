@@ -1,0 +1,243 @@
+version: '3.7'
+services:
+  filesender:
+    build:
+      context: ./filesender/
+    image: nickadam/filesender
+    environment:
+      APACHE_PASS_ENV: |
+        FS_SITE_URL
+        FS_ADMIN
+        FS_ADMIN_EMAIL
+        FS_EMAIL_REPLY_TO
+        FS_DB_TYPE
+        FS_DB_HOST
+        FS_DB_DATABASE
+        FS_DB_USERNAME
+        FS_DB_PASSWORD
+        SAML_SP_SITE_URL
+        SAML_BASE_URL_PATH
+        SAML_SECRET_SALT
+        SAML_ADMIN_PASSWORD
+        SAML_IDP_URL
+      FS_SITE_URL: https://localhost/filesender # URL of the application
+      FS_ADMIN: admin # UID's (from  $config['saml_uid_attribute']) that have Administrator permissions
+      FS_ADMIN_EMAIL: admin@example.com # email  address(es, separated by ,) to receive administrative messages (low disk space warning)
+      FS_EMAIL_REPLY_TO: admin@example.com # default no-reply email address
+      FS_DB_TYPE: mysql # mysql | pgsql
+      FS_DB_HOST: mariadb # hostname of the database or database container name
+      FS_DB_DATABASE: filesender # database name
+      FS_DB_USERNAME: root # database username
+      FS_DB_PASSWORD: filesender # database password
+      SAML_SP_SITE_URL: https://localhost/simplesaml/ # URL of the simplesaml service provider, requires trailing slash
+      SAML_BASE_URL_PATH: /simplesaml/
+      SAML_SECRET_SALT: bad_salt
+      SAML_ADMIN_PASSWORD: password1
+      SAML_IDP_URL: https://localhost/idp/saml2/idp/metadata.php
+      SAML_IDP_REMOTE_CONTENTS: |
+        <?php
+        $$metadata['https://localhost/idp/saml2/idp/metadata.php'] = [
+            'entityid' => 'https://localhost/idp/saml2/idp/metadata.php',
+            'contacts' => [],
+            'metadata-set' => 'saml20-idp-remote',
+            'SingleSignOnService' => [
+                [
+                    'Binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+                    'Location' => 'https://localhost/idp/saml2/idp/SSOService.php',
+                ],
+            ],
+            'SingleLogoutService' => [
+                [
+                    'Binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+                    'Location' => 'https://localhost/idp/saml2/idp/SingleLogoutService.php',
+                ],
+            ],
+            'ArtifactResolutionService' => [],
+            'NameIDFormats' => [
+                'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
+            ],
+            'keys' => [
+                [
+                    'encryption' => false,
+                    'signing' => true,
+                    'type' => 'X509Certificate',
+                    'X509Certificate' => 'MIIEozCCAwugAwIBAgIUHASyxfOKv6kF/kN6rZ7B7qPJti8wDQYJKoZIhvcNAQELBQAwYTELMAkGA1UEBhMCVVMxEzARBgNVBAgMClNvbWUtU3RhdGUxDTALBgNVBAcMBENpdHkxCzAJBgNVBAoMAklUMQswCQYDVQQLDAJJVDEUMBIGA1UEAwwLZXhhbXBsZS5jb20wHhcNMjExMDMwMTg0MzMzWhcNMzExMDMwMTg0MzMzWjBhMQswCQYDVQQGEwJVUzETMBEGA1UECAwKU29tZS1TdGF0ZTENMAsGA1UEBwwEQ2l0eTELMAkGA1UECgwCSVQxCzAJBgNVBAsMAklUMRQwEgYDVQQDDAtleGFtcGxlLmNvbTCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCCAYoCggGBAOXkuGOWSl/+3eBh2ZpDpF0PQjFjhhcey5lSWxwDNTeb80gXucLxWD2Gi66zeq/uKcKCjtuOaVb93yY8zRIbJRxnicqXISZ/767iK2S5eW1d8im0d5G32QzA4PbZ4LHDZ1r7olkUZK71SupvgkYs3GQgiUAeV1EEp9LCr5j/4qainZ2iPrEVo+Ce2YXJDmWD/x/wyJX8ZYzb2MjDOVK6SZf00bSkmYId1msbbQIL4Nax0DGXf1I308gJdSvnjUxkouZlatJFsWlyqmKxsaATQFNAiYcShzgokZjpEZBLpmr9p9FatWnyr9Ir7U9+wyBL86NEwdBzBghNWFPhhXFFed/zuP8piVcwRZPXfap861ZR5P6emTrlQNQS4XgEEhtLG6YyBhGteGS1qktJcGcbqOk1e0ZHmcliLZ316pzPPQwdFiG/84aP1gOQuz31o/EMuH0gsjDB032Z/Jz+/CC/KdpTinn9A7uOJZFSlsjwARlK8N/8hFCupnhDGODLZKmAswIDAQABo1MwUTAdBgNVHQ4EFgQUu4WK5b8l9iCMPhK8CcHsuIKHoxgwHwYDVR0jBBgwFoAUu4WK5b8l9iCMPhK8CcHsuIKHoxgwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAYEANfvpZHKyRK8uDS4GBx3SqtWL1pKXVjUIgcNeHYuMVve6r2AmG7cmuqf9MYIcZoL1ncCXAfebN4lEXrN8gtxKO1RTYPG92uFrU5VTBz+N0HrdOZM9xBHmnfSq5w1YYjUmsMLDY1AbUF1xK3IUdt/bzYbmNxADhJ2fKgdYUxfuyUCNTYkNziDJjjryBEdBuUxQomDQwvxmBYECnkGtU+cjbK3FCl9ujYeYQRxZFABA2gYR+6XA0030XGrjIiTeqtf7S9mASSInsg4EmqdpzjqCPKi2C998sBwBk0I3zLBd4lZkyFGlro5shS2NW+lIYedh+STGF/AOGvDSitpHCdCUpAjzqJ14eGG3iu5dkxneMQ5fA/MYh1uGvfSSburgGfR697yio0jRwimR7p27/htPiXhpBrIZ6t9sn/WuqIHoRARwq8TiowDAJ24ymY5YrtS0F/HPmPO6nJYtLyxWseFh43+LF1xtoHkOcOfbUgNyfNujKNnkVMRa0ciIB/RtImXA',
+                ],
+                [
+                    'encryption' => true,
+                    'signing' => false,
+                    'type' => 'X509Certificate',
+                    'X509Certificate' => 'MIIEozCCAwugAwIBAgIUHASyxfOKv6kF/kN6rZ7B7qPJti8wDQYJKoZIhvcNAQELBQAwYTELMAkGA1UEBhMCVVMxEzARBgNVBAgMClNvbWUtU3RhdGUxDTALBgNVBAcMBENpdHkxCzAJBgNVBAoMAklUMQswCQYDVQQLDAJJVDEUMBIGA1UEAwwLZXhhbXBsZS5jb20wHhcNMjExMDMwMTg0MzMzWhcNMzExMDMwMTg0MzMzWjBhMQswCQYDVQQGEwJVUzETMBEGA1UECAwKU29tZS1TdGF0ZTENMAsGA1UEBwwEQ2l0eTELMAkGA1UECgwCSVQxCzAJBgNVBAsMAklUMRQwEgYDVQQDDAtleGFtcGxlLmNvbTCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCCAYoCggGBAOXkuGOWSl/+3eBh2ZpDpF0PQjFjhhcey5lSWxwDNTeb80gXucLxWD2Gi66zeq/uKcKCjtuOaVb93yY8zRIbJRxnicqXISZ/767iK2S5eW1d8im0d5G32QzA4PbZ4LHDZ1r7olkUZK71SupvgkYs3GQgiUAeV1EEp9LCr5j/4qainZ2iPrEVo+Ce2YXJDmWD/x/wyJX8ZYzb2MjDOVK6SZf00bSkmYId1msbbQIL4Nax0DGXf1I308gJdSvnjUxkouZlatJFsWlyqmKxsaATQFNAiYcShzgokZjpEZBLpmr9p9FatWnyr9Ir7U9+wyBL86NEwdBzBghNWFPhhXFFed/zuP8piVcwRZPXfap861ZR5P6emTrlQNQS4XgEEhtLG6YyBhGteGS1qktJcGcbqOk1e0ZHmcliLZ316pzPPQwdFiG/84aP1gOQuz31o/EMuH0gsjDB032Z/Jz+/CC/KdpTinn9A7uOJZFSlsjwARlK8N/8hFCupnhDGODLZKmAswIDAQABo1MwUTAdBgNVHQ4EFgQUu4WK5b8l9iCMPhK8CcHsuIKHoxgwHwYDVR0jBBgwFoAUu4WK5b8l9iCMPhK8CcHsuIKHoxgwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAYEANfvpZHKyRK8uDS4GBx3SqtWL1pKXVjUIgcNeHYuMVve6r2AmG7cmuqf9MYIcZoL1ncCXAfebN4lEXrN8gtxKO1RTYPG92uFrU5VTBz+N0HrdOZM9xBHmnfSq5w1YYjUmsMLDY1AbUF1xK3IUdt/bzYbmNxADhJ2fKgdYUxfuyUCNTYkNziDJjjryBEdBuUxQomDQwvxmBYECnkGtU+cjbK3FCl9ujYeYQRxZFABA2gYR+6XA0030XGrjIiTeqtf7S9mASSInsg4EmqdpzjqCPKi2C998sBwBk0I3zLBd4lZkyFGlro5shS2NW+lIYedh+STGF/AOGvDSitpHCdCUpAjzqJ14eGG3iu5dkxneMQ5fA/MYh1uGvfSSburgGfR697yio0jRwimR7p27/htPiXhpBrIZ6t9sn/WuqIHoRARwq8TiowDAJ24ymY5YrtS0F/HPmPO6nJYtLyxWseFh43+LF1xtoHkOcOfbUgNyfNujKNnkVMRa0ciIB/RtImXA',
+                ],
+            ],
+        ];
+  mariadb:
+    image: mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: filesender
+  idp:
+    build:
+      context: ./simplesaml-idp/
+    image: nickadam/simplesaml-idp
+    environment:
+      APACHE_PASS_ENV: |
+        SAML_BASE_URL_PATH
+        SAML_SECRET_SALT
+        SAML_ADMIN_PASSWORD
+        SAML_IDP_LDAP_HOSTNAME
+        SAML_IDP_LDAP_PORT
+        SAML_IDP_LDAP_TLS
+        SAML_IDP_LDAP_REFERRALS
+        SAML_IDP_LDAP_SEARCH_BASE
+        SAML_IDP_LDAP_SEARCH_ATTRIBUTE
+        SAML_IDP_LDAP_SEARCH_USERNAME
+        SAML_IDP_LDAP_SEARCH_PASSWORD
+      SAML_BASE_URL_PATH: /idp/
+      SAML_SECRET_SALT: badsalt
+      SAML_ADMIN_PASSWORD: password
+      SAML_IDP_LDAP_HOSTNAME: ldap
+      SAML_IDP_LDAP_PORT: 10389
+      SAML_IDP_LDAP_TLS: false
+      SAML_IDP_LDAP_REFERRALS: false
+      SAML_IDP_LDAP_SEARCH_BASE: dc=example,dc=com
+      SAML_IDP_LDAP_SEARCH_ATTRIBUTE: sAMAccountName
+      SAML_IDP_LDAP_SEARCH_USERNAME: uid=test1,ou=users,dc=example,dc=com
+      SAML_IDP_LDAP_SEARCH_PASSWORD: secret
+      SAML_IDP_HOSTED_CONTENTS: |
+        <?php
+        $$metadata['__DYNAMIC:1__'] = [
+            'host' => '__DEFAULT__',
+            'privatekey' => 'server.pem',
+            'certificate' => 'server.crt',
+            'auth' => 'ldap',
+        ];
+      SAML_SP_REMOTE_CONTENTS: |
+        <?php
+        $$metadata['https://localhost/simplesaml/module.php/saml/sp/metadata.php/default-sp'] = [
+            'SingleLogoutService' => [
+                [
+                    'Binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+                    'Location' => 'https://localhost/simplesaml/module.php/saml/sp/saml2-logout.php/default-sp',
+                ],
+            ],
+            'AssertionConsumerService' => [
+                [
+                    'index' => 0,
+                    'Binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
+                    'Location' => 'https://localhost/simplesaml/module.php/saml/sp/saml2-acs.php/default-sp',
+                ],
+                [
+                    'index' => 1,
+                    'Binding' => 'urn:oasis:names:tc:SAML:1.0:profiles:browser-post',
+                    'Location' => 'https://localhost/simplesaml/module.php/saml/sp/saml1-acs.php/default-sp',
+                ],
+                [
+                    'index' => 2,
+                    'Binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact',
+                    'Location' => 'https://localhost/simplesaml/module.php/saml/sp/saml2-acs.php/default-sp',
+                ],
+                [
+                    'index' => 3,
+                    'Binding' => 'urn:oasis:names:tc:SAML:1.0:profiles:artifact-01',
+                    'Location' => 'https://localhost/simplesaml/module.php/saml/sp/saml1-acs.php/default-sp/artifact',
+                ],
+            ],
+        ];
+      SAML_PRIVATE_KEY_CONTENTS: |
+        -----BEGIN PRIVATE KEY-----
+        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
+        RTt7TeqT0zNhtHo17ZzSmT+v1Q==
+        -----END PRIVATE KEY-----
+      SAML_PUBLIC_KEY_CONTENTS: |
+        -----BEGIN CERTIFICATE-----
+        MIIEozCCAwugAwIBAgIUHASyxfOKv6kF/kN6rZ7B7qPJti8wDQYJKoZIhvcNAQEL
+        BQAwYTELMAkGA1UEBhMCVVMxEzARBgNVBAgMClNvbWUtU3RhdGUxDTALBgNVBAcM
+        BENpdHkxCzAJBgNVBAoMAklUMQswCQYDVQQLDAJJVDEUMBIGA1UEAwwLZXhhbXBs
+        ZS5jb20wHhcNMjExMDMwMTg0MzMzWhcNMzExMDMwMTg0MzMzWjBhMQswCQYDVQQG
+        EwJVUzETMBEGA1UECAwKU29tZS1TdGF0ZTENMAsGA1UEBwwEQ2l0eTELMAkGA1UE
+        CgwCSVQxCzAJBgNVBAsMAklUMRQwEgYDVQQDDAtleGFtcGxlLmNvbTCCAaIwDQYJ
+        KoZIhvcNAQEBBQADggGPADCCAYoCggGBAOXkuGOWSl/+3eBh2ZpDpF0PQjFjhhce
+        y5lSWxwDNTeb80gXucLxWD2Gi66zeq/uKcKCjtuOaVb93yY8zRIbJRxnicqXISZ/
+        767iK2S5eW1d8im0d5G32QzA4PbZ4LHDZ1r7olkUZK71SupvgkYs3GQgiUAeV1EE
+        p9LCr5j/4qainZ2iPrEVo+Ce2YXJDmWD/x/wyJX8ZYzb2MjDOVK6SZf00bSkmYId
+        1msbbQIL4Nax0DGXf1I308gJdSvnjUxkouZlatJFsWlyqmKxsaATQFNAiYcShzgo
+        kZjpEZBLpmr9p9FatWnyr9Ir7U9+wyBL86NEwdBzBghNWFPhhXFFed/zuP8piVcw
+        RZPXfap861ZR5P6emTrlQNQS4XgEEhtLG6YyBhGteGS1qktJcGcbqOk1e0ZHmcli
+        LZ316pzPPQwdFiG/84aP1gOQuz31o/EMuH0gsjDB032Z/Jz+/CC/KdpTinn9A7uO
+        JZFSlsjwARlK8N/8hFCupnhDGODLZKmAswIDAQABo1MwUTAdBgNVHQ4EFgQUu4WK
+        5b8l9iCMPhK8CcHsuIKHoxgwHwYDVR0jBBgwFoAUu4WK5b8l9iCMPhK8CcHsuIKH
+        oxgwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAYEANfvpZHKyRK8u
+        DS4GBx3SqtWL1pKXVjUIgcNeHYuMVve6r2AmG7cmuqf9MYIcZoL1ncCXAfebN4lE
+        XrN8gtxKO1RTYPG92uFrU5VTBz+N0HrdOZM9xBHmnfSq5w1YYjUmsMLDY1AbUF1x
+        K3IUdt/bzYbmNxADhJ2fKgdYUxfuyUCNTYkNziDJjjryBEdBuUxQomDQwvxmBYEC
+        nkGtU+cjbK3FCl9ujYeYQRxZFABA2gYR+6XA0030XGrjIiTeqtf7S9mASSInsg4E
+        mqdpzjqCPKi2C998sBwBk0I3zLBd4lZkyFGlro5shS2NW+lIYedh+STGF/AOGvDS
+        itpHCdCUpAjzqJ14eGG3iu5dkxneMQ5fA/MYh1uGvfSSburgGfR697yio0jRwimR
+        7p27/htPiXhpBrIZ6t9sn/WuqIHoRARwq8TiowDAJ24ymY5YrtS0F/HPmPO6nJYt
+        LyxWseFh43+LF1xtoHkOcOfbUgNyfNujKNnkVMRa0ciIB/RtImXA
+        -----END CERTIFICATE-----
+  ldap:
+    image: nickadam/ldap-ad-it
+  caddy:
+    build:
+      context: ./caddy-env/
+    image: nickadam/caddy-env
+    command: caddy run
+    environment:
+      CADDYFILE_CONTENT: |
+        localhost
+        reverse_proxy /idp/* https://idp {
+          transport http {
+            tls_insecure_skip_verify
+          }
+        }
+        reverse_proxy https://filesender {
+          transport http {
+            tls_insecure_skip_verify
+          }
+        }
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
