@@ -1,0 +1,10 @@
+#!/bin/bash
+
+echo "$SAML_IDP_HOSTED_CONTENTS" > /var/simplesamlphp/metadata/saml20-idp-hosted.php
+echo "$SAML_SP_REMOTE_CONTENTS" > /var/simplesamlphp/metadata/saml20-sp-remote.php
+echo "$SAML_PRIVATE_KEY_CONTENTS" > /var/simplesamlphp/cert/server.pem
+echo "$SAML_PUBLIC_KEY_CONTENTS" > /var/simplesamlphp/cert/server.crt
+
+echo PassEnv $APACHE_PASS_ENV > /etc/apache2/conf-enabled/pass-env.conf
+
+docker-php-entrypoint apache2-foreground
