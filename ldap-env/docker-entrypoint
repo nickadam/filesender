@@ -1,0 +1,5 @@
+#!/bin/sh
+
+echo "$LDIF_CONTENT" > /ldap/directory.ldif
+
+java -jar ldap-server.jar /ldap/directory.ldif

@@ -213,7 +213,142 @@ services:
         LyxWseFh43+LF1xtoHkOcOfbUgNyfNujKNnkVMRa0ciIB/RtImXA
         -----END CERTIFICATE-----
   ldap:
-    image: nickadam/ldap-ad-it
+    build:
+      context: ./ldap-env/
+    image: nickadam/ldap-env
+    environment:
+      LDIF_CONTENT: |
+        #########################################################
+        # MICROSOFT SCHEMA for sAMAccountName and memberOf
+        # these two attributes are not defined in Apache Directory Server
+        #########################################################
+
+        dn: cn=microsoft, ou=schema
+        objectclass: metaSchema
+        objectclass: top
+        cn: microsoft
+
+        dn: ou=attributetypes, cn=microsoft, ou=schema
+        objectclass: organizationalUnit
+        objectclass: top
+        ou: attributetypes
+
+        dn: m-oid=1.2.840.113556.1.4.221, ou=attributetypes, cn=microsoft, ou=schema
+        objectclass: metaAttributeType
+        objectclass: metaTop
+        objectclass: top
+        m-oid: 1.2.840.113556.1.4.221
+        m-name: sAMAccountName
+        m-equality: caseIgnoreMatch
+        m-syntax: 1.3.6.1.4.1.1466.115.121.1.15
+        m-singleValue: TRUE
+
+        dn: m-oid=1.2.840.113556.1.4.222, ou=attributetypes, cn=microsoft, ou=schema
+        objectclass: metaAttributeType
+        objectclass: metaTop
+        objectclass: top
+        m-oid: 1.2.840.113556.1.4.222
+        m-name: memberOf
+        m-equality: caseIgnoreMatch
+        m-syntax: 1.3.6.1.4.1.1466.115.121.1.15
+        m-singleValue: FALSE
+
+        dn: m-oid=1.2.840.113556.1.4.223, ou=attributetypes, cn=microsoft, ou=schema
+        objectclass: metaAttributeType
+        objectclass: metaTop
+        objectclass: top
+        m-oid: 1.2.840.113556.1.4.223
+        m-name: objectCategory
+        m-equality: caseIgnoreMatch
+        m-syntax: 1.3.6.1.4.1.1466.115.121.1.15
+        m-singleValue: TRUE
+
+        dn: ou=objectclasses, cn=microsoft, ou=schema
+        objectclass: organizationalUnit
+        objectclass: top
+        ou: objectClasses
+
+        dn: m-oid=1.2.840.113556.1.5.6, ou=objectclasses, cn=microsoft, ou=schema
+        objectclass: metaObjectClass
+        objectclass: metaTop
+        objectclass: top
+        m-oid: 1.2.840.113556.1.5.6
+        m-name: simulatedMicrosoftSecurityPrincipal
+        m-supObjectClass: top
+        m-typeObjectClass: AUXILIARY
+        m-must: sAMAccountName
+        m-may: memberOf
+        m-must: objectCategory
+
+        ############
+        # Domain
+        ############
+        dn: dc=example,dc=com
+        dc: example
+        objectClass: top
+        objectClass: domain
+
+        dn: ou=users,dc=example,dc=com
+        objectClass: organizationalUnit
+        objectClass: top
+        ou: users
+
+        dn: uid=admin,ou=users,dc=example,dc=com
+        objectClass: top
+        objectClass: person
+        objectClass: inetOrgPerson
+        objectClass: simulatedMicrosoftSecurityPrincipal
+        objectCategory: User
+        cn: Admin User
+        sn: admin
+        uid: admin
+        sAMAccountName: admin
+        userPassword: secret
+        memberOf: admins
+
+        dn: uid=test1,ou=users,dc=example,dc=com
+        objectClass: top
+        objectClass: person
+        objectClass: inetOrgPerson
+        objectClass: simulatedMicrosoftSecurityPrincipal
+        objectCategory: User
+        cn: Test User 1
+        sn: test1
+        uid: test1
+        sAMAccountName: test1
+        userPassword: secret
+        memberOf: users
+
+        dn: uid=test2,ou=users,dc=example,dc=com
+        objectClass: top
+        objectClass: person
+        objectClass: inetOrgPerson
+        objectClass: simulatedMicrosoftSecurityPrincipal
+        objectCategory: User
+        cn: Test User 2
+        sn: test2
+        uid: test2
+        sAMAccountName: test2
+        userPassword: secret
+        memberOf: users
+
+        dn: ou=roles,dc=example,dc=com
+        objectclass: top
+        objectclass: organizationalUnit
+        ou: roles
+
+        dn: cn=admins,ou=roles,dc=example,dc=com
+        objectClass: top
+        objectClass: groupOfNames
+        cn: admins
+        member: uid=admin,ou=users,dc=example,dc=com
+
+        dn: cn=users,ou=roles,dc=example,dc=com
+        objectClass: top
+        objectClass: groupOfNames
+        cn: users
+        member: uid=test1,ou=users,dc=example,dc=com
+        member: uid=test2,ou=users,dc=example,dc=com
   caddy:
     build:
       context: ./caddy-env/
